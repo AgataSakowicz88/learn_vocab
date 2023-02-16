@@ -1,7 +1,7 @@
 # learn_vocab
 A simple app for revising vocabulary.
 
-Written in Python 3.6 using tkinter package.
+Written in Python 3.6 using tkinter package. Python 3.6 is needed to keep the insert order in the word dictionary.
 
 Given a dictionary file with the words you want to learn, the application will ask for translations of random words from the file into your target language, and indicate whether your answer was correct or not. The file structure supported for now:
 
