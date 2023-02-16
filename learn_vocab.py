@@ -86,6 +86,17 @@ def open_dictionary(path_to_file, max_words = None):
     return word_dict, score_dict, word_dict_inverse
 
 
+def get_last_words(input_dict, n = 0):
+    """
+    creates a word dictionary with the last n entries of the input dictionary
+    """
+    l = len(input_dict)
+    if n >= l or n <= 0:
+        return input_dict
+    else:
+        return {key: val for key, val in list(input_dict.items())[-n:]}
+
+
 
 
 def set_window_position(width = 200, height = 100):
@@ -130,7 +141,7 @@ dict_option.pack()
 
 ##### set window position
 
-set_window_position(500, 150)
+set_window_position(500, 200)
 
 
 ##### display the window in the front (doesn't seem to work with the terminal though)
@@ -165,10 +176,22 @@ new_question.set('')
 inverse_dict = IntVar()
 inverse_dict.set(0)
 
+##### last n words from the dict to consider (if non-positive, all words will be considered)
+
+last_words = IntVar()
+last_words.set(0)
+
+label_last_words = Label(master, text='consider only n last words (leave empty to read the whole dictionary):')
+label_last_words.pack()
+
+entry_last_words = Entry(master, bd = 5, width = 5)
+entry_last_words.pack()
+
+
 ##### input box
 
 label = Label(master, text='press ENTER to start')
-label.pack(side = TOP)
+label.pack()
 
 entry = Entry(master, bd = 5, width = 50)
 entry.pack()
@@ -209,6 +232,19 @@ def callback(event):
     ## read the dictionary file if it has not been read yet
     if not word_dict:
         word_dict, score_dict, word_dict_inverse = open_dictionary(path + dict_options_dict[target_language.get()])
+
+    n_last_words = entry_last_words.get()
+    if n_last_words == '':
+        n_last_words = '0'
+
+    ## consider only n last words; if n is not a number, read the whole dict
+    try:
+        n = int(n_last_words)
+        word_dict = get_last_words(word_dict, n)
+        score_dict = get_last_words(score_dict, n)
+        word_dict_inverse = get_last_words(word_dict_inverse, n)
+    except:
+        response_label.config(text='You need to provide a number. Reading the whole dictionary.')
 
     input = entry.get()
 
