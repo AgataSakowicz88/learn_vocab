@@ -26,6 +26,7 @@ import random
 
 ## todo: account for different separators
 
+#n todo: clean the file reading
 
 
 #####################################
@@ -34,9 +35,9 @@ import random
 
 #####################################
 
-path = '/Users/Agata/learn_vocabulary/'
+path = '../'
 filename_port = 'eng_port.txt'
-filename_esp = 'eng_esp.txt'
+filename_esp = 'es.txt'
 filename_de = 'eng_de.txt'
 filename_fr = 'eng_fr.txt'
 
@@ -44,6 +45,9 @@ filename_fr = 'eng_fr.txt'
 word_dict = {}
 score_dict = {}
 word_dict_inverse = {}
+
+## number of words retrieved for the questioning
+MAX_WORDS = 20
 
 master = Tk()
 
@@ -59,7 +63,7 @@ master = Tk()
 
 
 
-def open_dictionary(path_to_file):
+def open_dictionary(path_to_file, max_words = None):
     '''
     reads the dictionary file from disk
     :param path_to_file: string; full path to the dictionary file
@@ -72,12 +76,15 @@ def open_dictionary(path_to_file):
     with open(path_to_file, encoding="utf8") as f:
         word_dict = {line.split(';')[0].strip(): line.split(';')[1].replace('\n', '').strip() for
                      line in f
-                     if line != '\n'}
+                     if (line != '\n' and not line.startswith('#') )}
+        if max_words and max_words < len(word_dict):
+            word_dict = dict(random.sample(list(word_dict.items()), max_words))
 
     score_dict = {key: -1 for key in word_dict.keys()}
     word_dict_inverse = {value: key for key, value in word_dict.items()}
 
     return word_dict, score_dict, word_dict_inverse
+
 
 
 
@@ -111,7 +118,7 @@ def set_window_position(width = 200, height = 100):
 ##### set language you want to learn; by default Portugeuse
 
 target_language = StringVar()
-target_language.set('Portuguese')
+target_language.set('Spanish')
 
 dict_label = Label(master, text='What language would you like to learn?')
 dict_label.pack(side = TOP)
