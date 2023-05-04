@@ -46,9 +46,6 @@ word_dict = {}
 score_dict = {}
 word_dict_inverse = {}
 
-## number of words retrieved for the questioning
-MAX_WORDS = 20
-
 master = Tk()
 
 
@@ -63,7 +60,7 @@ master = Tk()
 
 
 
-def open_dictionary(path_to_file, max_words = None):
+def open_dictionary(path_to_file):
     '''
     reads the dictionary file from disk
     :param path_to_file: string; full path to the dictionary file
@@ -77,8 +74,6 @@ def open_dictionary(path_to_file, max_words = None):
         word_dict = {line.split(';')[0].strip(): line.split(';')[1].replace('\n', '').strip() for
                      line in f
                      if (line != '\n' and not line.startswith('#') )}
-        if max_words and max_words < len(word_dict):
-            word_dict = dict(random.sample(list(word_dict.items()), max_words))
 
     score_dict = {key: -1 for key in word_dict.keys()}
     word_dict_inverse = {value: key for key, value in word_dict.items()}
@@ -97,9 +92,29 @@ def get_last_words(input_dict, n = 0):
         return {key: val for key, val in list(input_dict.items())[-n:]}
 
 
+def get_n_words(input_dict, n = 0):
+    """
+    creates a word dictionary with the words to use for questioning
+    input_dict - dictionary after setting the last_words
+    """
+    l = len(input_dict)
+    if n >= l or n <= 0:
+        return input_dict
+    else:
+        return dict(random.sample(list(input_dict.items()), n))
 
 
-def set_window_position(width = 200, height = 100):
+def update_dictionaries(word_dict, score_dict, word_dict_inverse):
+    """
+    Updates score_dict and word_dict_inverse based on the new version of word_dict
+    """
+    score_dict = {key: val for key, val in score_dict.items() if key in word_dict.keys()}
+    word_dict_inverse = {value: key for key, value in word_dict.items()}
+
+    return score_dict, word_dict_inverse
+
+
+def set_window_position(width = 200, height = 200):
     '''
     sets position for the pop-up window
     :param width: num; width of the window
@@ -141,7 +156,7 @@ dict_option.pack()
 
 ##### set window position
 
-set_window_position(500, 200)
+set_window_position(500, 300)
 
 
 ##### display the window in the front (doesn't seem to work with the terminal though)
@@ -171,10 +186,12 @@ master.lift()
 new_question = StringVar()
 new_question.set('')
 
+
 ##### to enable translation from the target language; 0 means translating to target language
 
 inverse_dict = IntVar()
 inverse_dict.set(0)
+
 
 ##### last n words from the dict to consider (if non-positive, all words will be considered)
 
@@ -186,6 +203,18 @@ label_last_words.pack()
 
 entry_last_words = Entry(master, bd = 5, width = 5)
 entry_last_words.pack()
+
+
+##### number of words to choose for questioning
+
+n_words = IntVar()
+last_words.set(0)
+
+label_n_words = Label(master, text='number of words to choose for questioning:')
+label_n_words.pack()
+
+entry_n_words = Entry(master, bd = 5, width = 5)
+entry_n_words.pack()
 
 
 ##### input box
@@ -245,6 +274,18 @@ def callback(event):
         word_dict_inverse = get_last_words(word_dict_inverse, n)
     except:
         response_label.config(text='You need to provide a number. Reading the whole dictionary.')
+
+    ## consider only n_words random words
+    n_words = entry_n_words.get()
+    if n_words == '':
+        n_words = '0'
+    try:
+        n = int(n_words)
+        word_dict = get_n_words(word_dict, n)
+        score_dict, word_dict_inverse = update_dictionaries(word_dict, score_dict, word_dict_inverse)
+    except:
+        response_label.config(text='You need to provide a number. Using the whole dictionary of n last words.')
+
 
     input = entry.get()
 
